@@ -584,9 +584,9 @@ function setupListener(id) {
     const { temperature, humidity, plot1, plot2 } = data;
 
     const threshold = {
-      temp: { min: 15, max: 25 },
-      humid: { min: 60, max: 80 },
-      soil: { min: 60, max: 80 }
+      temp: { min: 28, max: 30 },
+      humid: { min: 60, max: 90 },
+      soil: { min: 60, max: 90 }
     };
 
     // Cek apakah keluar dari threshold
@@ -845,7 +845,112 @@ function closeModal() {
   }
 }
 
+// ======= GRAFIK TREND DATA SENSOR =======
+let sensorChart; // Global Chart.js instance
 
+function initSensorChart() {
+  const ctx = document.getElementById('sensorChart').getContext('2d');
+  sensorChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [], // waktu atau timestamp
+      datasets: [
+        {
+          label: 'Temperature (°C)',
+          data: [],
+          borderColor: 'rgba(255, 99, 132, 1)',
+          backgroundColor: 'rgba(255, 99, 132, 0.2)',
+          tension: 0.3
+        },
+        {
+          label: 'Humidity (%)',
+          data: [],
+          borderColor: 'rgba(54, 162, 235, 1)',
+          backgroundColor: 'rgba(54, 162, 235, 0.2)',
+          tension: 0.3
+        },
+        {
+          label: 'Moisture Plot 1 (%)',
+          data: [],
+          borderColor: 'rgba(255, 206, 86, 1)',
+          backgroundColor: 'rgba(255, 206, 86, 0.2)',
+          tension: 0.3
+        },
+        {
+          label: 'Moisture Plot 2 (%)',
+          data: [],
+          borderColor: 'rgba(75, 192, 192, 1)',
+          backgroundColor: 'rgba(75, 192, 192, 0.2)',
+          tension: 0.3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false,
+      },
+      plugins: {
+        legend: {
+          position: 'top',
+        },
+        title: {
+          display: true,
+          text: 'Sensor Data Trend'
+        }
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Waktu'
+          }
+        },
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Nilai Sensor'
+          }
+        }
+      }
+    }
+  });
+}
 
+function updateSensorChartRealtime() {
+  const db = firebase.database();
+  const dataRef = db.ref('data');
 
+  dataRef.on('value', (snapshot) => {
+    const labels = [];
+    const temperatureData = [];
+    const humidityData = [];
+    const plot1Data = [];
+    const plot2Data = [];
 
+    snapshot.forEach(childSnap => {
+      const item = childSnap.val();
+      const label = `${item.date || ''} ${item.time || ''}`;
+      labels.push(label);
+      temperatureData.push(parseFloat(item.temperature) || 0);
+      humidityData.push(parseFloat(item.humidity) || 0);
+      plot1Data.push(parseFloat(item.plot1) || 0);
+      plot2Data.push(parseFloat(item.plot2) || 0);
+    });
+
+    sensorChart.data.labels = labels;
+    sensorChart.data.datasets[0].data = temperatureData;
+    sensorChart.data.datasets[1].data = humidityData;
+    sensorChart.data.datasets[2].data = plot1Data;
+    sensorChart.data.datasets[3].data = plot2Data;
+    sensorChart.update();
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  initSensorChart();
+  updateSensorChartRealtime();
+});
