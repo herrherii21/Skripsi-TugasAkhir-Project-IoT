@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Farming Control</title>
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css" />
+  
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/raphael@2.3.0/raphael.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/justgage@1.4.0/justgage.min.js"></script>
+</head>
+
+<body>
+  <!-- Modern Header -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm py-3">
+    <div class="container d-flex justify-content-between align-items-center">
+      <a class="navbar-brand d-flex align-items-center gap-3" href="#">
+        <img src="https://img.icons8.com/ios-filled/40/ffffff/plant-under-sun.png" alt="Logo" width="35" height="35" />
+        <span class="fw-bold fs-4">Smart Farming Control</span>
+      </a>
+      <div>
+        <span class="text-white small">Monitoring & Automation Dashboard</span>
+      </div>
+    </div>
+  </nav>
+  </nav>
+
+  <main class="container py-4">
+    <section class="mb-4">
+      <div class="card">
+        <div class="card-body">
+          <center>
+            <!-- Judul Monitoring dengan Ikon dan Style yang Dipertegas -->
+            <h2 class="mb-3" style="font-weight: bold; font-size: 2rem; color: #3c4b64;">
+              <i class="fas fa-tachometer-alt" style="margin-right: 10px;"></i> Monitoring Dashboard</h2>
+          </center>
+          <div class="row g-3">
+            <!-- Temperature -->
+          <div class="col-md-3">
+            <div class="monitor-item card text-center p-3 temperature-card">
+              <i class="fas fa-thermometer-half fa-2x mb-1" style="color: #d9534f;"></i>
+              <div class="fw-semibold">Temperature</div>
+              <div class="fs-1 fw-bold mt-1"><span id="temperature">--</span> °C</div>
+              <div id="gaugeTemp" style="width:100%; height:140px;"></div>
+            </div>
+          </div>
+          <!-- Humidity -->
+          <div class="col-md-3">
+            <div class="monitor-item card text-center p-3 humidity-card">
+              <i class="fas fa-tint fa-2x mb-1" style="color: #5bc0de;"></i>
+              <div class="fw-semibold">Humidity</div>
+              <div class="fs-1 fw-bold mt-1"><span id="humidity">--</span> %</div>
+              <div id="gaugeHum" style="width:100%; height:140px;"></div>
+            </div>
+          </div>
+          <!-- Moisture Plot 1 -->
+          <div class="col-md-3">
+            <div class="monitor-item card text-center p-3 moisture-card-1">
+              <i class="fas fa-seedling fa-2x mb-1" style="color: #5cb85c;"></i>
+              <div class="fw-semibold">Moisture Plot 1</div>
+              <div class="fs-1 fw-bold mt-1"><span id="plot1">--</span> %</div>
+              <div id="gaugeM1" style="width:100%; height:140px;"></div>
+            </div>
+          </div>
+          <!-- Moisture Plot 2 -->
+          <div class="col-md-3">
+            <div class="monitor-item card text-center p-3 moisture-card-2">
+              <i class="fas fa-seedling fa-2x mb-1" style="color: #5cb85c;"></i>
+              <div class="fw-semibold">Moisture Plot 2</div>
+              <div class="fs-1 fw-bold mt-1"><span id="plot2">--</span> %</div>
+              <div id="gaugeM2" style="width:100%; height:140px;"></div>
+            </div>
+          </div>  
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-4">
+      <div class="card">
+        <div class="card-body">
+          <center>
+            <h2 class="mb-4" style="font-weight: bold; font-size: 2rem; color: #3c4b64;">
+              <i class="fas fa-sliders-h" style="margin-right: 10px;"></i> Control Manual
+            </h2>
+          </center>
+          <div class="row g-4">
+            <!-- Card: Control Pompa Plot 1 -->
+            <div class="col-md-4">
+              <div class="card h-100 text-center bg-light shadow-sm border-0">
+                <div class="card-body">
+                  <i class="fas fa-water fa-2x mb-2 text-primary"></i>
+                  <h5 class="card-title">Pompa Plot 1</h5>
+                  <p class="card-text">Kontrol manual pompa untuk lahan 1</p>
+                  <button id="control-plot1" class="btn btn-success w-100" onclick="toggleButton('control-plot1')">Aktifkan Manual Pompa 1</button>
+                </div>
+              </div>
+            </div>
+            <!-- Card: Control Pompa Plot 2 -->
+            <div class="col-md-4">
+              <div class="card h-100 text-center bg-light shadow-sm border-0">
+                <div class="card-body">
+                  <i class="fas fa-water fa-2x mb-2 text-success"></i>
+                  <h5 class="card-title">Pompa Plot 2</h5>
+                  <p class="card-text">Kontrol manual pompa untuk lahan 2</p>
+                  <button id="control-plot2" class="btn btn-success w-100" onclick="toggleButton('control-plot2')">Aktifkan Manual Pompa 2</button>
+                </div>
+              </div>
+            </div>
+            <!-- Card: Control Lampu -->
+            <div class="col-md-4">
+              <div class="card h-100 text-center bg-light shadow-sm border-0">
+                <div class="card-body">
+                  <i class="fas fa-lightbulb fa-2x mb-2 text-warning"></i>
+                  <h5 class="card-title">Lampu</h5>
+                  <p class="card-text">Kontrol manual lampu untuk lahan</p>
+                  <button id="control-lamp" class="btn btn-primary w-100" onclick="toggleButton('control-lamp')">Aktifkan Manual Lampu</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <section class="container mt-5">
+      <div class="card shadow">
+        <div class="card-body">
+         <center>
+          <!-- Judul Control Otomatis dengan Ikon dan Style yang Dipertegas -->
+          <h2 class="mb-4" style="font-weight: bold; font-size: 2rem; color: #3c4b64;">
+            <i class="fas fa-sync-alt" style="margin-right: 10px;"></i> Control Otomatis (Jadwal)
+          </h2>
+          </center>
+          <div class="row g-4">
+
+            <!-- Pompa 1 -->
+            <div class="col-md-4">
+              <div class="card h-100 bg-light shadow-sm border-0">
+                <div class="card-body text-center">
+                  <i class="fas fa-water fa-2x mb-2 text-primary"></i>
+                  <h3 class="card-title">Pompa Plot 1</h3>
+                  <p class="card-text">Kontrol otomatis pompa untuk lahan 1</p>
+                  <label>Jam Nyala Pompa 1: <input type="time" id="plot1-time1" class="form-control"></label>
+                  <label>Durasi 1:
+                    <div class="input-group">
+                      <input type="number" id="plot1-duration1" class="form-control">
+                      <select id="plot1-unit1" class="form-select">
+                        <option value="second">Detik</option>
+                        <option value="minute">Menit</option>
+                      </select>
+                    </div>
+                  </label>
+                  <label>Jam Nyala Pompa 2: <input type="time" id="plot1-time2" class="form-control"></label>
+                  <label>Durasi 2:
+                    <div class="input-group">
+                      <input type="number" id="plot1-duration2" class="form-control">
+                      <select id="plot1-unit2" class="form-select">
+                        <option value="second">Detik</option>
+                        <option value="minute">Menit</option>
+                      </select>
+                    </div>
+                  </label>
+                  <div class="days mt-3 text-start">
+                    <span class="fw-bold d-block mb-2">Hari Aktif:</span>
+                    <div class="row">
+                      <div class="col-6">
+                        <div class="form-check d-flex align-items-center gap-2">
+                          <input class="form-check-input m-0" type="checkbox" id="plot1-day1">
+                          <label class="form-check-label" for="plot1-day1" >Senin</label>
+                        </div>
+                        <div class="form-check d-flex align-items-center gap-2">
+                          <input class="form-check-input m-0" type="checkbox" id="plot1-day2">
+                          <label class="form-check-label" for="plot1-day2">Selasa</label>
+                        </div>
+                        <div class="form-check d-flex align-items-center gap-2">
+                          <input class="form-check-input m-0" type="checkbox" id="plot1-day3">
+                          <label class="form-check-label" for="plot1-day3">Rabu</label>
+                        </div>
+                        <div class="form-check d-flex align-items-center gap-2">
+                          <input class="form-check-input m-0" type="checkbox" id="plot1-day4">
+                          <label class="form-check-label" for="plot1-day4">Kamis</label>
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="form-check d-flex align-items-center gap-2">
+                          <input class="form-check-input m-0" type="checkbox" id="plot1-day5">
+                          <label class="form-check-label" for="plot1-day5">Jum'at</label>
+                        </div>
+                        <div class="form-check d-flex align-items-center gap-2">
+                          <input class="form-check-input m-0" type="checkbox" id="plot1-day6">
+                          <label class="form-check-label" for="plot1-day6">Sabtu</label>
+                        </div>
+                        <div class="form-check d-flex align-items-center gap-2">
+                          <input class="form-check-input m-0" type="checkbox" id="plot1-day7">
+                          <label class="form-check-label" for="plot1-day7">Minggu</label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <button id="save-plot1-settings" class="btn btn-success mt-3 w-100" onclick="saveSettings('Pompa 1')">Simpan Setting Pompa 1</button>
+                  <button id="btn-auto-plot1" class="btn btn-success mt-2 w-100 toggle-btn" onclick="toggleAutoButton('btn-auto-plot1')">Aktifkan Otomatis Pompa 1</button>
+                </div>
+              </div>
+            </div>
+    
+            <!-- Pompa 2 -->
+            <div class="col-md-4">
+              <div class="card h-100 bg-light shadow-sm border-0">
+                <div class="card-body text-center">
+                  <i class="fas fa-water fa-2x mb-2 text-success"></i>  
+                  <h3 class="card-title">Pompa Plot 2</h3>
+                  <p class="card-text">Kontrol otomatis pompa untuk lahan 2</p>
+                  <label>Jam Nyala Pompa 1: <input type="time" id="plot2-time1" class="form-control"></label>
+                  <label>Durasi 1:
+                    <div class="input-group">
+                      <input type="number" id="plot2-duration1" class="form-control">
+                      <select id="plot2-unit1" class="form-select">
+                        <option value="second">Detik</option>
+                        <option value="minute">Menit</option>
+                      </select>
+                    </div>
+                  </label>
+                  <label>Jam Nyala Pompa 2: <input type="time" id="plot2-time2" class="form-control"></label>
+                  <label>Durasi 2:
+                    <div class="input-group">
+                      <input type="number" id="plot2-duration2" class="form-control">
+                      <select id="plot2-unit2" class="form-select">
+                        <option value="second">Detik</option>
+                        <option value="minute">Menit</option>
+                      </select>
+                    </div>
+                  </label>
+                  <div class="days mt-3 text-start">
+                    <span class="fw-bold d-block mb-2">Hari Aktif:</span>
+                    <div class="row">
+                      <div class="col-6">
+                        <div class="form-check d-flex align-items-center gap-2">
+                          <input class="form-check-input m-0" type="checkbox" id="plot2-day1">
+                          <label class="form-check-label" for="plot2-day1">Senin</label>
+                        </div>
+                        <div class="form-check d-flex align-items-center gap-2">
+                          <input class="form-check-input m-0" type="checkbox" id="plot2-day2">
+                          <label class="form-check-label" for="plot2-day2">Selasa</label>
+                        </div>
+                        <div class="form-check d-flex align-items-center gap-2">
+                          <input class="form-check-input m-0" type="checkbox" id="plot2-day3">
+                          <label class="form-check-label" for="plot2-day3">Rabu</label>
+                        </div>
+                        <div class="form-check d-flex align-items-center gap-2">
+                          <input class="form-check-input m-0" type="checkbox" id="plot2-day4">
+                          <label class="form-check-label" for="plot2-day4">Kamis</label>
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="form-check d-flex align-items-center gap-2">
+                          <input class="form-check-input m-0" type="checkbox" id="plot2-day5">
+                          <label class="form-check-label" for="plot2-day5">Jum'at</label>
+                        </div>
+                        <div class="form-check d-flex align-items-center gap-2">
+                          <input class="form-check-input m-0" type="checkbox" id="plot2-day6">
+                          <label class="form-check-label" for="plot2-day6">Sabtu</label>
+                        </div>
+                        <div class="form-check d-flex align-items-center gap-2">
+                          <input class="form-check-input m-0" type="checkbox" id="plot2-day7">
+                          <label class="form-check-label" for="plot2-day7">Minggu</label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <button id="save-plot2-settings" class="btn btn-success mt-3 w-100" onclick="saveSettings('Pompa 2')">Simpan Setting Pompa 2</button>
+                  <button id="btn-auto-plot2" class="btn btn-success mt-2 w-100 toggle-btn" onclick="toggleAutoButton('btn-auto-plot2')">Aktifkan Otomatis Pompa 2</button>
+                </div>
+              </div>
+            </div>
+    
+            <!-- Lampu -->
+            <div class="col-md-4">
+              <div class="card h-100 bg-light shadow-sm border-0">
+                <div class="card-body text-center">
+                  <i class="fas fa-lightbulb fa-2x mb-2 text-warning"></i>
+                  <h3 class="card-title">Lampu</h3>
+                  <p class="card-text">Kontrol otomatis lampu untuk lahan</p>
+                  <label>Jam Nyala: <input type="time" id="lamp-time-on" class="form-control"></label>
+                  <label>Jam Padam: <input type="time" id="lamp-time-off" class="form-control"></label>
+                  <div class="days mt-3 text-start">
+                    <span class="fw-bold d-block mb-2">Hari Aktif:</span>
+                    <div class="row">
+                      <div class="col-6">
+                        <div class="form-check d-flex align-items-center gap-2">
+                          <input class="form-check-input m-0" type="checkbox" id="lamp-day1">
+                          <label class="form-check-label" for="lamp-day1">Senin</label>
+                        </div>
+                        <div class="form-check d-flex align-items-center gap-2">
+                          <input class="form-check-input m-0" type="checkbox" id="lamp-day2">
+                          <label class="form-check-label" for="lamp-day2">Selasa</label>
+                        </div>
+                        <div class="form-check d-flex align-items-center gap-2">
+                          <input class="form-check-input m-0" type="checkbox" id="lamp-day3">
+                          <label class="form-check-label" for="lamp-day3">Rabu</label>
+                        </div>
+                        <div class="form-check d-flex align-items-center gap-2">
+                          <input class="form-check-input m-0" type="checkbox" id="lamp-day4">
+                          <label class="form-check-label" for="lamp-day4">Kamis</label>
+                        </div>
+                      </div>
+                      <div class="col-6">
+                        <div class="form-check d-flex align-items-center gap-2">
+                          <input class="form-check-input m-0" type="checkbox" id="lamp-day5">
+                          <label class="form-check-label" for="lamp-day5">Jum'at</label>
+                        </div>
+                        <div class="form-check d-flex align-items-center gap-2">
+                          <input class="form-check-input m-0" type="checkbox" id="lamp-day6">
+                          <label class="form-check-label" for="lamp-day6">Sabtu</label>
+                        </div>
+                        <div class="form-check d-flex align-items-center gap-2">
+                          <input class="form-check-input m-0" type="checkbox" id="lamp-day7">
+                          <label class="form-check-label" for="lamp-day7">Minggu</label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <button id="save-lamp-settings" class="btn btn-primary mt-3 w-100" onclick="saveSettings('Lampu')">Simpan Setting Lampu</button>
+                  <button id="btn-auto-lamp" class="btn btn-primary mt-2 w-100 toggle-btn" onclick="toggleAutoButton('btn-auto-lamp')">Aktifkan Otomatis Lampu</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-4">
+  <div class="card">
+    <div class="card-body">
+      <center>
+        <h2 class="mb-4" style="font-weight: bold; font-size: 2rem; color: #3c4b64;">
+          <i class="fas fa-microchip" style="margin-right: 10px;"></i> Control Otomatis (Sensor)
+        </h2>
+      </center>
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="card h-100 text-center bg-light shadow-sm border-0">
+            <div class="card-body">
+              <i class="fas fa-water fa-2x mb-2 text-primary"></i>
+              <h5 class="card-title">Pompa Plot 1</h5>
+              <p class="card-text">Kontrol otomatis berbasis sensor untuk lahan 1</p>
+              <button id="auto-plot1" class="btn w-100" onclick="toggleAutoSensor('auto-plot1')">Aktifkan Otomatis Pompa 1</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card h-100 text-center bg-light shadow-sm border-0">
+            <div class="card-body">
+              <i class="fas fa-water fa-2x mb-2 text-success"></i>
+              <h5 class="card-title">Pompa Plot 2</h5>
+              <p class="card-text">Kontrol otomatis berbasis sensor untuk lahan 2</p>
+              <button id="auto-plot2" class="btn w-100" onclick="toggleAutoSensor('auto-plot2')">Aktifkan Otomatis Pompa 2</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <div class="card h-100 text-center bg-light shadow-sm border-0">
+            <div class="card-body">
+              <i class="fas fa-lightbulb fa-2x mb-2 text-warning"></i>
+              <h5 class="card-title">Lampu</h5>
+              <p class="card-text">Kontrol otomatis berbasis sensor untuk lampu</p>
+              <button id="auto-lamp" class="btn w-100" onclick="toggleAutoSensor('auto-lamp')">Aktifkan Otomatis Lampu</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="mb-4">
+  <div class="card">
+    <div class="card-body">
+      <center>
+        <h2 class="mb-4" style="font-weight: bold; font-size: 2rem; color: #3c4b64">
+          <i class="fas fa-chart-bar" style="margin-right: 10px"></i> Detail Data Komulatif (3 Waktu Teratas)
+        </h2>
+      </center>
+
+      <div class="row g-4" id="dataKomulatifCards">
+        <!-- Card dinamis muncul di sini -->
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+
+
+<!-- Modal Detail -->
+<div class="modal fade" id="detailModal" tabindex="-1" aria-labelledby="detailModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="detailModalLabel">Detail Seluruh Data Komulatif</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3" id="cardsContainer"></div> <!-- semua card data akan ditaruh di sini -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal()">Tutup</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modern Footer -->
+<footer class="bg-light text-center text-muted py-4 mt-5 border-top">
+  <div class="container">
+    <p class="mb-1">&copy; 2025 Smart Farming Control. All rights reserved.</p>
+    <small>
+      Built by herrherri21 using ESP32, Firebase, and Bootstrap 5.
+    </small>
+    <div class="mt-3">
+      <a href="https://github.com/herrherii21" class="text-success me-3"><i class="fab fa-github fa-lg"></i></a>
+      <a href="https://www.linkedin.com/in/herrherii21/" class="text-success me-3"><i class="fab fa-linkedin fa-lg"></i></a>
+      <a href="https://www.instagram.com/herrherii21/" class="text-success"><i class="fab fa-instagram fa-lg"></i></a>
+    </div>
+  </div>
+</footer>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="scripts.js"></script>
+
+</body>
+</html>

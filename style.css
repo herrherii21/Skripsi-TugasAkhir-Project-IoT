@@ -1,0 +1,238 @@
+.navbar-brand img {
+  filter: drop-shadow(1px 1px 1px rgba(0, 0, 0, 0.2));
+}
+
+.navbar {
+  background: linear-gradient(90deg, #4CAF50 0%, #388E3C 100%);
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f9f9f9;
+}
+
+h1, h2, h3 {
+  font-weight: 600;
+}
+
+.card-title {
+  font-size: 1.25rem;
+}
+
+label {
+  display: block;
+  margin-top: 0.75rem;
+}
+
+input[type="time"],
+input[type="number"],
+select {
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+button.toggle-btn.active {
+  color: white;
+  border-color: #28a745;
+}
+
+.monitor-item {
+  font-size: 1.1rem;
+  background-color: #e9f7ef;
+  border: 1px solid #d4edda;
+  border-radius: 0.5rem;
+}
+
+.form-check {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.form-check label {
+  margin-bottom: 0;
+}
+
+input[type="checkbox"] {
+  margin-right: 0.25rem;
+}
+
+.days span {
+  margin-bottom: 0.25rem;
+  display: inline-block;
+}
+
+.temperature-card {
+  background-color: #f1c40f;
+  color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.humidity-card {
+  background-color: #3498db;
+  color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.moisture-card-1 {
+  background-color: #2ecc71;
+  color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.moisture-card-2 {
+  background-color: #9b59b6;
+  color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.monitor-item:hover {
+  transform: translateY(-5px);
+  transition: 0.3s ease-in-out;
+}
+
+.btn {
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.btn:hover {
+  transform: translateY(-5px);
+}
+
+#temperature,
+#humidity,
+#plot1,
+#plot2 {
+  font-size: 2.5rem;
+  font-weight: 900;
+  display: inline-block;
+  margin-top: 0.5rem;
+  color: #ffffff;
+}
+
+.monitor-item span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  font-weight: 900;
+  height: 100px;
+  margin-top: 0.5rem;
+}
+
+.monitor-item div {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+  
+.monitor-item .fs-1 {
+  height: auto; 
+  line-height: 1.2; 
+  margin-top: 0.25rem;
+  margin-bottom: 0;
+}
+
+.monitor-item canvas {
+  margin-top: 5px;
+  width: 100%;
+  height: auto;
+  max-height: 100px;
+}
+
+.monitor-item div[id^="gauge"] {
+  margin-top: 5px;
+}
+
+.card {
+  margin-bottom: 1.5rem; /* beri jarak bawah antar card */
+}
+
+#auto-plot1, #auto-plot2 {
+      background-color: #198754; /* btn-success background */
+      color: white !important;
+      border: none;
+    }
+    #auto-lamp {
+      background-color: #0d6efd; /* btn-primary background */
+      color: white !important;
+      border: none;
+    }
+    button.btn-danger {
+      color: white !important;
+      border: none;
+    }
+
+.date-badge {
+  background-color: #e0f3ff;  /* biru muda */
+  color: #005b99;
+  padding: 5px 12px;
+  border-radius: 8px;
+  margin-right: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  display: inline-block;
+}
+
+.time-badge {
+  background-color: #dff0d8;
+  color: #3c763d;
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+  display: inline-block;
+}
+
+.data-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  border-bottom: 1px solid #eee;
+  font-size: 0.95rem;
+}
+
+.data-row:last-child {
+  border-bottom: none;
+}
+
+.key {
+  text-align: left;
+  font-weight: 500;
+  color: #333;
+}
+
+.value {
+  text-align: right;
+  font-weight: 700;
+  color: #111;
+}
+
+.card-title {
+  text-align: center;
+}
+
+.card-title > span {
+  display: inline-block;
+  margin: 0 6px;
+}
+
+.date-time-container {
+  display: inline-flex;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.card-detail {
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  height: 100%;
+}
+
