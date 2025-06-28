@@ -950,7 +950,121 @@ function updateSensorChartRealtime() {
   });
 }
 
+// ======= AUTO REFRESH / LOAD HALAMAN =======
 document.addEventListener('DOMContentLoaded', function () {
   initSensorChart();
   updateSensorChartRealtime();
 });
+
+// ======= FITUR LOGIN / LOGOUT AKUN =======
+document.addEventListener("DOMContentLoaded", () => {
+  const authBtn = document.getElementById("authButton");
+
+  firebase.auth().onAuthStateChanged((user) => {
+    if (authBtn) {
+      if (user) {
+        authBtn.innerText = "Logout";
+        authBtn.href = "#";
+        authBtn.onclick = (e) => {
+          e.preventDefault();
+          firebase.auth().signOut().then(() => {
+            window.location.href = "index.html";
+          });
+        };
+      } else {
+        authBtn.innerText = "Login";
+        authBtn.href = "index.html";
+        authBtn.onclick = null;
+      }
+    }
+  });
+});
+
+// ======= FITUR MANAJEMEN DATA PROFILE =======
+document.addEventListener("DOMContentLoaded", function () {
+  firebase.auth().onAuthStateChanged(function(user) {
+    const profileLink = document.getElementById("profileLink");
+    const authBtn = document.getElementById("authButton");
+
+    if (user) {
+      if (profileLink) {
+        profileLink.style.display = "inline-block";
+        profileLink.href = "profil.html";
+        profileLink.classList.add("profile-btn");  // Tambah efek hover dari JS
+      }
+
+      if (authBtn) {
+        authBtn.innerText = "Logout";
+        authBtn.href = "#";
+        authBtn.onclick = function (e) {
+          e.preventDefault();
+          firebase.auth().signOut().then(() => {
+            window.location.href = "index.html";
+          });
+        };
+      }
+    } else {
+      if (authBtn) {
+        authBtn.innerText = "Login";
+        authBtn.href = "index.html";
+      }
+    }
+  });
+});
+
+
+document.getElementById("profileForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+
+  const newName = nameInput.value.trim();
+  const newEmail = emailInput.value.trim();
+  const newPassword = passwordInput.value;
+  const currentPassword = document.getElementById("currentPassword").value;
+
+  if (!currentPassword) {
+    alert("Masukkan password saat ini untuk menyimpan perubahan.");
+    return;
+  }
+
+  const credentials = firebase.auth.EmailAuthProvider.credential(user.email, currentPassword);
+
+  user.reauthenticateWithCredential(credentials).then(() => {
+    const updates = [];
+
+    // Update nama di database
+    updates.push(firebase.database().ref("users/" + uid + "/name").set(newName));
+
+    // Update email jika berubah
+    if (newEmail !== user.email) {
+      updates.push(user.updateEmail(newEmail));
+      updates.push(firebase.database().ref("users/" + uid + "/email").set(newEmail));
+    }
+
+    // Update password jika diisi
+    if (newPassword && newPassword.length >= 6) {
+      updates.push(user.updatePassword(newPassword));
+    }
+
+    return Promise.all(updates);
+  })
+  .then(() => {
+    alert("Profil berhasil diperbarui.");
+    passwordInput.value = "";
+    document.getElementById("currentPassword").value = "";
+  })
+  .catch(error => {
+    console.error("Gagal menyimpan:", error);
+    alert("Gagal menyimpan: " + error.message);
+  });
+});
+
+
+
+
+
+
+
+
+
+
+

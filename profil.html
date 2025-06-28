@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Profil Pengguna</title>
+
+  <!-- Bootstrap & Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body class="profile bg-light d-flex flex-column min-vh-100">
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm py-3">
+    <div class="container d-flex justify-content-between align-items-center">
+      <a class="navbar-brand d-flex align-items-center gap-3" href="#">
+        <img src="https://img.icons8.com/ios-filled/40/ffffff/plant-under-sun.png" alt="Logo" width="35" height="35" />
+        <span class="fw-bold fs-4">Smart Farming Control</span>
+      </a>
+      <div>
+        <span class="text-white small">Monitoring & Automation Dashboard</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Konten Utama -->
+  <main class="flex-fill">
+    <div class="container mt-4">
+      <div class="card shadow-sm">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0">Profil Saya</h5>
+        </div>
+        <div class="card-body">
+          <form id="profileForm">
+            <!-- Nama -->
+            <div class="mb-3">
+              <label for="name" class="form-label">Nama Lengkap</label>
+              <input type="text" class="form-control" id="name" required />
+            </div>
+
+            <!-- Email -->
+            <div class="mb-3">
+              <label for="email" class="form-label">Email (Login)</label>
+              <div class="d-flex align-items-center gap-2">
+                <input type="email" class="form-control" id="email" required />
+                <span id="verifyStatus" class="badge bg-danger d-none">Belum Verifikasi</span>
+                <button type="button" id="verifyBtn" class="btn btn-primary btn-sm d-none">Verifikasi</button>
+              </div>
+            </div>
+
+            <!-- Password Saat Ini -->
+            <div class="mb-3">
+              <label for="currentPassword" class="form-label">Password Saat Ini</label>
+              <div class="input-group">
+                <input type="password" class="form-control" id="currentPassword" required />
+                <button class="btn btn-outline-secondary toggle-password" type="button" onclick="togglePassword('currentPassword', this)">
+                  <i class="fas fa-eye"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Password Baru -->
+            <div class="mb-3">
+              <label for="password" class="form-label">Password Baru</label>
+              <div class="input-group">
+                <input type="password" class="form-control" id="password" placeholder="Kosongkan jika tidak ingin mengganti" />
+                <button class="btn btn-outline-secondary toggle-password" type="button" onclick="togglePassword('password', this)">
+                  <i class="fas fa-eye"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Tombol Aksi -->
+            <div class="d-flex gap-2 mt-3">
+              <button type="submit" class="btn btn-success">Simpan Perubahan</button>
+              <a href="dashboard_user.html" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i> Kembali
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-light text-center text-muted py-4 border-top mt-auto">
+    <div class="container">
+      <p class="mb-1">&copy; 2025 Smart Farming Control. All rights reserved.</p>
+      <small>Built by herrherri21 using ESP32, Firebase, and Bootstrap 5.</small>
+      <div class="mt-3">
+        <a href="https://github.com/herrherii21" class="text-success me-3"><i class="fab fa-github fa-lg"></i></a>
+        <a href="https://www.linkedin.com/in/herrherii21/" class="text-success me-3"><i class="fab fa-linkedin fa-lg"></i></a>
+        <a href="https://www.instagram.com/herrherii21/" class="text-success"><i class="fab fa-instagram fa-lg"></i></a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+  <!-- Script Profil -->
+  <script>
+    // Konfigurasi Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDhckNigYyinZhdVHbKZTP17Vu-4Nt3dLs",
+      authDomain: "smart-farming-apps.firebaseapp.com",
+      databaseURL: "https://smart-farming-apps-default-rtdb.firebaseio.com",
+      projectId: "smart-farming-apps",
+      storageBucket: "smart-farming-apps.appspot.com",
+      messagingSenderId: "892869405795",
+      appId: "1:892869405795:web:a459c8179e7945c9d7dc56"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+    // Autentikasi & Load Data
+    firebase.auth().onAuthStateChanged(user => {
+      if (!user) return window.location.href = "login.html";
+
+      const uid = user.uid;
+      const nameInput = document.getElementById("name");
+      const emailInput = document.getElementById("email");
+      const currentPasswordInput = document.getElementById("currentPassword");
+      const passwordInput = document.getElementById("password");
+      const verifyStatus = document.getElementById("verifyStatus");
+      const verifyBtn = document.getElementById("verifyBtn");
+
+      // Tampilkan status verifikasi email
+      if (user.emailVerified) {
+        verifyStatus.classList.replace("bg-danger", "bg-success");
+        verifyStatus.textContent = "Terverifikasi";
+        verifyStatus.classList.remove("d-none");
+        verifyBtn.classList.add("d-none");
+      } else {
+        verifyStatus.classList.replace("bg-success", "bg-danger");
+        verifyStatus.textContent = "Belum Verifikasi";
+        verifyStatus.classList.remove("d-none");
+        verifyBtn.classList.remove("d-none");
+      }
+
+      // Kirim email verifikasi
+      verifyBtn.addEventListener("click", () => {
+        user.sendEmailVerification()
+          .then(() => alert("Email verifikasi telah dikirim. Silakan periksa kotak masuk Anda."))
+          .catch(error => alert("Gagal mengirim email: " + error.message));
+      });
+
+      // Ambil data dari Realtime Database
+      firebase.database().ref("users/" + uid).once("value").then(snapshot => {
+        nameInput.value = snapshot.val()?.name || "";
+        emailInput.value = user.email || "";
+      });
+
+      // Submit form profil
+      document.getElementById("profileForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const newName = nameInput.value.trim();
+        const newEmail = emailInput.value.trim();
+        const currentPassword = currentPasswordInput.value;
+        const newPassword = passwordInput.value;
+
+        const updates = [];
+        const emailChanged = newEmail !== user.email;
+        const passwordChanged = newPassword.length >= 6;
+        const needsReauth = (emailChanged || passwordChanged) && currentPassword.length > 0;
+
+        const reauthenticate = () => {
+          const credential = firebase.auth.EmailAuthProvider.credential(user.email, currentPassword);
+          return user.reauthenticateWithCredential(credential);
+        };
+
+        const doUpdates = () => {
+          updates.push(firebase.database().ref("users/" + uid + "/name").set(newName));
+
+          // Update email dengan verifikasi terlebih dahulu
+          if (emailChanged) {
+            user.verifyBeforeUpdateEmail(newEmail).then(() => {
+              alert("Link verifikasi telah dikirim ke email baru. Silakan klik tautan di email.");
+              startEmailVerificationWatcher(true);
+            });
+          }
+
+          // Update password jika diubah
+          if (passwordChanged) {
+            updates.push(user.updatePassword(newPassword));
+          }
+
+          // Eksekusi semua pembaruan
+          Promise.all(updates).then(() => {
+            alert("Profil berhasil diperbarui.");
+            currentPasswordInput.value = "";
+            passwordInput.value = "";
+          }).catch(err => {
+            alert("Gagal menyimpan: " + err.message);
+          });
+        };
+
+        // Reauth jika perlu
+        if (needsReauth) {
+          reauthenticate().then(doUpdates).catch(err => {
+            alert("Re-authentikasi gagal: " + err.message);
+          });
+        } else {
+          doUpdates();
+        }
+      });
+    });
+
+    // Fungsi toggle password
+    function togglePassword(inputId, btn) {
+      const input = document.getElementById(inputId);
+      const icon = btn.querySelector('i');
+      const isVisible = input.type === "text";
+
+      input.type = isVisible ? "password" : "text";
+      icon.classList.toggle("fa-eye", isVisible);
+      icon.classList.toggle("fa-eye-slash", !isVisible);
+    }
+
+    // Pantau email verifikasi selesai
+    function startEmailVerificationWatcher(updateEmailToDB = false) {
+      const checkInterval = setInterval(() => {
+        const user = firebase.auth().currentUser;
+        user.reload().then(() => {
+          if (user.emailVerified) {
+            clearInterval(checkInterval);
+
+            if (updateEmailToDB) {
+              const updatedEmail = user.email;
+              const uid = user.uid;
+              firebase.database().ref("users/" + uid + "/email").set(updatedEmail)
+                .then(() => firebase.auth().signOut().then(() => location.reload()))
+                .catch((err) => {
+                  alert("Gagal simpan email baru ke database");
+                  console.error("DB Error:", err.message);
+                });
+            } else {
+              firebase.auth().signOut().then(() => location.reload());
+            }
+          }
+        });
+      }, 5000);
+    }
+  </script>
+
+</body>
+</html>
