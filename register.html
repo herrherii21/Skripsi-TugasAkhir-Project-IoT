@@ -94,7 +94,7 @@
           firebase.database().ref("users/" + uid).set({
             name: name,
             email: email,
-            role: "user" // Default role adalah user
+            role: "pending" // Default role adalah user
           }).then(() => {
             alert("Pendaftaran berhasil. Silakan login.");
             window.location.href = "index.html";
@@ -122,6 +122,7 @@
         icon.classList.add("fa-eye");
       }
     });
+
   </script>
 
 </body>
