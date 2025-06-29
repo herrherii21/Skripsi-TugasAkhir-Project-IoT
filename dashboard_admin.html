@@ -34,7 +34,10 @@
   </nav>
   </nav>
 
-  <main class="container py-4">
+
+
+  <main id="mainContent" class="container py-4">
+
   <!-- Card: Daftar Pengguna Baru yang Mendaftar -->
   <section class="mb-4">
     <div class="card">
@@ -63,9 +66,7 @@
       </div>
     </div>
   </section>
-</main>
 
-  <main class="container py-4">
   <section class="mb-4">
     <div class="card">
       <div class="card-body">
@@ -98,9 +99,6 @@
       </div>
     </div>
   </section>
-</main>
-
-
 
 <div class="modal fade" id="userModal" tabindex="-1" class="modal-header custom-green">
   <div class="modal-dialog">
@@ -147,7 +145,53 @@
   </div>
 </div>
 
-  <main class="container py-4">
+<!-- INTEGRASI API PUBLIK OPEN WEATHER API -->
+ <section class="mb-4" id="cuaca">
+  <div class="card">
+    <div class="card-body">
+      <center>
+        <h2 class="mb-3" style="font-weight: bold; font-size: 2rem; color: #3c4b64;">
+          <i class="fas fa-cloud-sun-rain me-2"></i> Monitoring Cuaca Terkini
+        </h2>
+      </center>
+      <div class="row g-3">
+        <!-- Suhu -->
+        <div class="col-md-3">
+          <div class="monitor-item card text-center p-3 temperature-card">
+            <i class="fas fa-thermometer-half fa-2x mb-1" style="color: #d9534f;"></i>
+            <div class="fw-semibold">Suhu Udara</div>
+            <div class="fs-1 fw-bold mt-1"><span id="ow-temperature">--</span></div>
+          </div>
+        </div>
+        <!-- Kelembaban -->
+        <div class="col-md-3">
+          <div class="monitor-item card text-center p-3 humidity-card">
+            <i class="fas fa-tint fa-2x mb-1" style="color: #5bc0de;"></i>
+            <div class="fw-semibold">Kelembaban Udara</div>
+            <div class="fs-1 fw-bold mt-1"><span id="ow-humidity">--</span></div>
+          </div>
+        </div>
+        <!-- Curah Hujan -->
+        <div class="col-md-3">
+          <div class="monitor-item card text-center p-3 rain-card">
+            <i class="fas fa-cloud-showers-heavy fa-2x mb-1" style="color: #337ab7;"></i>
+            <div class="fw-semibold">Curah Hujan (1 jam)</div>
+            <div class="fs-1 fw-bold mt-1"><span id="ow-rain">--</span></div>
+          </div>
+        </div>
+        <!-- Kondisi Cuaca -->
+        <div class="col-md-3">
+          <div class="monitor-item card text-center p-3 condition-card">
+            <i class="fas fa-cloud fa-2x mb-1" style="color: #f0ad4e;"></i>
+            <div class="fw-semibold">Kondisi Cuaca</div>
+            <div class="fs-5 fw-bold mt-1"><span id="ow-condition">--</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
     <section class="mb-4">
       <div class="card">
         <div class="card-body">
@@ -199,7 +243,7 @@
       </div>
     </section>
 
-  <section>
+  <section >
   <div class="container mt-4">
   <div class="card shadow">
     <div class="card-body">
@@ -262,7 +306,7 @@
       </div>
     </section>
     
-    <section class="container mt-5">
+    <section class="mb-4">
       <div class="card shadow">
         <div class="card-body">
          <center>
@@ -610,8 +654,6 @@
     });
   });
 
-
-
 // <!-- Manajemen Data Pengguna -->
 firebase.database().ref("users").once("value").then(snapshot => {
   const tbody = document.getElementById("userTableBody");
@@ -671,8 +713,6 @@ function deleteUser(uid) {
   }
 }
 
-
-
 // <!-- Manajemen Data Pengguna 2 -->
 document.getElementById("userForm").addEventListener("submit", function (e) {
   e.preventDefault();
@@ -714,8 +754,6 @@ document.getElementById("userForm").addEventListener("submit", function (e) {
       });
   }
 });
-
-
 
 // <!-- Manajemen Data Pengguna 3 -->
 function loadUsers() {
@@ -834,6 +872,84 @@ firebase.auth().onAuthStateChanged(user => {
     window.location.href = "index.html";
   }
 });
+
+// <!-- INTEGRASI API PUBLIK OPEN WEATHER API -->
+const apiKey = "93d084827692523d07fda24c89f9faee";
+
+const lat = -6.876855363443979;
+const lon = 107.61104240858664;
+
+function translateWeather(desc) {
+  const map = {
+    "clear sky": "Langit Cerah",
+    "few clouds": "Sedikit Berawan",
+    "scattered clouds": "Berawan Sebagian",
+    "broken clouds": "Berawan Tebal",
+    "overcast clouds": "Langit Mendung",
+    "light rain": "Hujan Ringan",
+    "moderate rain": "Hujan Sedang",
+    "heavy intensity rain": "Hujan Lebat",
+    "very heavy rain": "Hujan Sangat Lebat",
+    "extreme rain": "Hujan Ekstrem",
+    "thunderstorm": "Badai Petir",
+    "snow": "Salju",
+    "mist": "Kabut",
+    "haze": "Kabut Tipis",
+    "smoke": "Asap",
+    "dust": "Debu",
+    "fog": "Kabut Tebal",
+    "sand": "Berkabut Pasir",
+    "ash": "Abu Vulkanik",
+    "squall": "Angin Kencang",
+    "tornado": "Angin Tornado"
+  };
+  return map[desc] || desc.charAt(0).toUpperCase() + desc.slice(1);
+}
+
+async function fetchWeather() {
+  try {
+    const response = await fetch(
+      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`
+    );
+    const data = await response.json();
+
+    const temp = data.main.temp;
+    const humidity = data.main.humidity;
+    const rain = data.rain ? data.rain["1h"] || 0 : 0;
+    const rawCondition = data.weather[0].description;
+    const condition = translateWeather(rawCondition);
+
+    document.getElementById("ow-temperature").textContent = temp.toFixed(1) + "°C";
+document.getElementById("ow-humidity").textContent = humidity + "%";
+document.getElementById("ow-rain").textContent = rain + " mm";
+document.getElementById("ow-condition").textContent = condition;
+
+
+    // SIMPAN KE FIREBASE (Diletakkan di dalam fetchWeather)
+    const now = new Date().toISOString();
+    const weatherData = {
+      last_update: now,
+      temperature: temp,
+      humidity: humidity,
+      rain: rain,
+      condition: condition
+    };
+
+    firebase.database().ref("weather_data").set(weatherData)
+      .then(() => {
+        console.log("✅ Data cuaca berhasil disimpan ke Firebase");
+      })
+      .catch((err) => {
+        console.error("❌ Gagal menyimpan data cuaca:", err);
+      });
+
+  } catch (error) {
+    console.error("Gagal memuat data cuaca:", error);
+  }
+}
+
+fetchWeather();
+setInterval(fetchWeather, 10 * 60 * 1000);
 
 </script>
 
