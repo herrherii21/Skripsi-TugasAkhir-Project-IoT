@@ -249,6 +249,41 @@
         });
       }, 5000);
     }
+
+    firebase.auth().onAuthStateChanged(user => {
+  if (user) {
+    const uid = user.uid;
+    firebase.database().ref("users/" + uid + "/role").on("value", (snapshot) => {
+      const role = snapshot.val();
+
+      if (role === "pending") {
+        alert("Akun Anda belum disetujui. Silakan hubungi admin.");
+        firebase.auth().signOut().then(() => {
+          window.location.href = "index.html"; // ⬅️ Ganti ke halaman login kamu
+        });
+      }
+
+      // Jika role valid, boleh masuk ke dashboard
+      else if (role === "user") {
+        // Misal ini di dashboard_user.html
+        // Lanjutkan akses
+      } else if (role === "admin") {
+        // Misal ini di dashboard_admin.html
+        // Lanjutkan akses
+      } else {
+        // Tidak dikenal
+        firebase.auth().signOut().then(() => {
+          alert("Role tidak dikenal. Anda telah keluar.");
+          window.location.href = "index.html";
+        });
+      }
+    });
+  } else {
+    // Tidak login
+    window.location.href = "index.html";
+  }
+});
+
   </script>
 
 </body>
