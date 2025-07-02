@@ -408,3 +408,15 @@ body.index {
     .text-link {
       font-size: 0.9rem;
     }
+
+    .notif-message {
+      white-space: pre-line;
+      word-break: break-word;
+    }
+
+    .btn-back-dashboard {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      z-index: 10;
+    }

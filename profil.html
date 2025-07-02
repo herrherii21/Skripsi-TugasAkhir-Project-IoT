@@ -53,6 +53,23 @@
               </div>
             </div>
 
+            <!-- Nomor WhatsApp + Tombol Verifikasi (Editable) -->
+              <div class="mb-3">
+                <label for="phone" class="form-label">Nomor WhatsApp</label>
+                <div class="d-flex align-items-center gap-2">
+                  <input type="text" class="form-control" id="phone" required />
+                  <a
+                    href="https://wa.me/14155238886?text=join%20column-reach"
+                    target="_blank"
+                    class="btn btn-success btn-sm"
+                    id="btnVerifyWA"
+                    style="display: none;"
+                  >
+                    Verifikasi WhatsApp
+                  </a>
+                </div>
+              </div>
+
             <!-- Password Saat Ini -->
             <div class="mb-3">
               <label for="currentPassword" class="form-label">Password Saat Ini</label>
@@ -78,7 +95,7 @@
             <!-- Tombol Aksi -->
             <div class="d-flex gap-2 mt-3">
               <button type="submit" class="btn btn-success">Simpan Perubahan</button>
-              <a href="dashboard_user.html" class="btn btn-secondary">
+              <a id="backBtn"  class="btn btn-secondary">
                 <i class="fas fa-arrow-left me-2"></i> Kembali
               </a>
             </div>
@@ -132,6 +149,9 @@
       const verifyStatus = document.getElementById("verifyStatus");
       const verifyBtn = document.getElementById("verifyBtn");
 
+      const phoneInput = document.getElementById("phone");       // [ADD]
+      const verifyWAButton = document.getElementById("btnVerifyWA"); // [ADD]
+
       // Tampilkan status verifikasi email
       if (user.emailVerified) {
         verifyStatus.classList.replace("bg-danger", "bg-success");
@@ -153,10 +173,17 @@
       });
 
       // Ambil data dari Realtime Database
-      firebase.database().ref("users/" + uid).once("value").then(snapshot => {
-        nameInput.value = snapshot.val()?.name || "";
-        emailInput.value = user.email || "";
-      });
+firebase.database().ref("users/" + uid).once("value").then(snapshot => {
+  const data = snapshot.val();
+  nameInput.value = data?.name || "";
+  emailInput.value = user.email || "";
+  phoneInput.value = data?.phone || "-"; // [ADD]
+
+  if (data?.phone) {
+    verifyWAButton.style.display = "inline-block"; // [ADD]
+  }
+});
+
 
       // Submit form profil
       document.getElementById("profileForm").addEventListener("submit", function (e) {
@@ -179,6 +206,8 @@
 
         const doUpdates = () => {
           updates.push(firebase.database().ref("users/" + uid + "/name").set(newName));
+updates.push(firebase.database().ref("users/" + uid + "/phone").set(phoneInput.value.trim())); // [ADD]
+
 
           // Update email dengan verifikasi terlebih dahulu
           if (emailChanged) {
@@ -283,6 +312,33 @@
     window.location.href = "index.html";
   }
 });
+
+// FUNCTION BUTTON BACK
+ document.addEventListener("DOMContentLoaded", function () {
+    firebase.auth().onAuthStateChanged(user => {
+      if (user) {
+        const uid = user.uid;
+        firebase.database().ref("users/" + uid).once("value").then(snapshot => {
+          const userData = snapshot.val();
+          const role = userData.role;
+
+          const backBtn = document.getElementById("backBtn");
+          if (backBtn) {
+            backBtn.addEventListener("click", function (e) {
+              e.preventDefault(); // cegah a href bawaan
+              if (role === "admin") {
+                window.location.href = "dashboard_admin.html";
+              } else if (role === "user") {
+                window.location.href = "dashboard_user.html";
+              } else {
+                alert("Role tidak dikenal.");
+              }
+            });
+          }
+        });
+      }
+    });
+  });
 
   </script>
 

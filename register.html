@@ -33,6 +33,13 @@
         <input type="email" id="email" class="form-control" placeholder="Masukkan email" required />
       </div>
 
+      <!-- Input Nomor WhatsApp -->
+<div class="mb-3">
+  <label for="phone" class="form-label">Nomor WhatsApp</label>
+  <input type="text" id="phone" class="form-control" placeholder="Contoh: 6281234567890" required pattern="^62[0-9]{9,15}$" />
+</div>
+
+
       <!-- Input Password dengan Toggle Visibility -->
       <div class="mb-3 position-relative">
         <label for="password" class="form-label">Kata Sandi</label>
@@ -79,49 +86,89 @@
   <!-- Logic Registrasi -->
   <script>
     // Fungsi untuk menangani form registrasi
-    document.getElementById('registerForm').addEventListener('submit', function(e) {
-      e.preventDefault();
+  document.getElementById('registerForm').addEventListener('submit', function(e) {
+    e.preventDefault();
 
-      const name = document.getElementById("name").value;
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const phone = document.getElementById("phone").value;
 
-      firebase.auth().createUserWithEmailAndPassword(email, password)
-        .then((userCredential) => {
-          const uid = userCredential.user.uid;
+    firebase.auth().createUserWithEmailAndPassword(email, password)
+      .then((userCredential) => {
+        const uid = userCredential.user.uid;
 
-          // Simpan data tambahan ke Realtime Database
-          firebase.database().ref("users/" + uid).set({
-            name: name,
-            email: email,
-            role: "pending" // Default role adalah user
-          }).then(() => {
-            alert("Pendaftaran berhasil. Silakan login.");
-            window.location.href = "index.html";
-          });
-        })
-        .catch((error) => {
-          alert("Gagal daftar: " + error.message);
+        // Simpan data tambahan ke Realtime Database
+        firebase.database().ref("users/" + uid).set({
+          name: name,
+          email: email,
+          phone: phone,
+          role: "pending"
+        }).then(() => {
+          // Tambah ke notifikasi Firebase
+         firebase.database().ref("notifications").push({
+  title: "📥 Pengguna Baru Mendaftar",
+  message:
+    "👤 Nama: " + name + "\n" +
+    "📧 Email: " + email + "\n" +
+    "📱 No. WA: " + phone + "\n" +
+    "🔐 Status: Menunggu persetujuan admin\n",
+  type: "info",
+  timestamp: Date.now(),
+  status: "unread"
+});
+
+// Kirim notifikasi WA ke admin (hardcoded sementara)
+const notifPayload = {
+  to: "+6285798457093",
+  message: `📥 Pengguna Baru Mendaftar:\n\n👤 Nama: ${name}\n📧 Email: ${email}\n📱 No. WA: ${phone}\n🔐 Status: Menunggu persetujuan admin`
+};
+
+console.log("📤 Mengirim notifikasi ke WhatsApp admin dengan payload:", notifPayload);
+
+fetch("https://my-twilio-project.vercel.app/api/send-notif", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify(notifPayload)
+})
+  .then(response => response.json())
+  .then(data => {
+    console.log("✅ WA Notif berhasil dikirim:", data);
+    alert("Pendaftaran berhasil. Silakan login.");
+    window.location.href = "index.html"; // ⬅️ dipindahkan ke sini
+  })
+  .catch(error => {
+    console.error("❌ Gagal kirim WA:", error);
+    alert("Pendaftaran berhasil, tapi gagal kirim WA.");
+    window.location.href = "index.html";
+  });
+
         });
-    });
+      })
+      .catch((error) => {
+        alert("Gagal daftar: " + error.message);
+      });
+  });
 
-    // Fungsi untuk toggle visibilitas password
-    const toggleBtn = document.getElementById("togglePassword");
-    const passwordInput = document.getElementById("password");
-    const icon = document.getElementById("eyeIcon");
+  // Fungsi untuk toggle visibilitas password
+  const toggleBtn = document.getElementById("togglePassword");
+  const passwordInput = document.getElementById("password");
+  const icon = document.getElementById("eyeIcon");
 
-    toggleBtn.addEventListener("click", () => {
-      const type = passwordInput.getAttribute("type");
-      if (type === "password") {
-        passwordInput.setAttribute("type", "text");
-        icon.classList.remove("fa-eye");
-        icon.classList.add("fa-eye-slash");
-      } else {
-        passwordInput.setAttribute("type", "password");
-        icon.classList.remove("fa-eye-slash");
-        icon.classList.add("fa-eye");
-      }
-    });
+  toggleBtn.addEventListener("click", () => {
+    const type = passwordInput.getAttribute("type");
+    if (type === "password") {
+      passwordInput.setAttribute("type", "text");
+      icon.classList.remove("fa-eye");
+      icon.classList.add("fa-eye-slash");
+    } else {
+      passwordInput.setAttribute("type", "password");
+      icon.classList.remove("fa-eye-slash");
+      icon.classList.add("fa-eye");
+    }
+  });
 
   </script>
 

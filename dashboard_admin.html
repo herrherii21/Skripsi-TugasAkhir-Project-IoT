@@ -27,6 +27,14 @@
       </a>
       <div>
         <span class="text-white small">Monitoring & Automation Dashboard</span>
+    
+       <a id="notifikasi" href="notifikasi.html" class="btn btn-light btn-sm fw-semibold position-relative">
+          Notifikasi
+        <span id="notifBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
+          ●
+        </span>
+      </a>
+
       <a id="profileLink" href="profil.html" class="btn btn-light btn-sm fw-semibold">Profil</a>
       <a id="authButton" href="index.html" class="btn btn-light btn-sm fw-semibold">Login</a>
       </div>
@@ -54,6 +62,7 @@
               <tr>
                 <th>Nama</th>
                 <th>Email</th>
+                 <th>Phone</th>
                 <th>Role</th>
                 <th>Aksi</th>
               </tr>
@@ -87,6 +96,7 @@
               <tr>
                 <th>Nama</th>
                 <th>Email</th>
+                <th>Phone</th>
                 <th>Role</th>
                 <th>Aksi</th>
               </tr>
@@ -120,6 +130,12 @@
             <label class="form-label">Email</label>
             <input type="email" id="userEmail" class="form-control" required />
           </div>
+
+          <div class="mb-3">
+  <label class="form-label">Nomor WhatsApp</label>
+  <input type="text" id="userPhone" class="form-control" />
+</div>
+
           
           <div class="mb-3">
             <label class="form-label">Password</label>
@@ -667,6 +683,7 @@ firebase.database().ref("users").once("value").then(snapshot => {
     tr.innerHTML = `
       <td>${data.name}</td>
       <td>${data.email}</td>
+      <td>${data.phone}</td>
       <td class="text-capitalize">${data.role || 'user'}</td>
       <td class="text-center">
         <a href="edit_user.html?id=${uid}" class="btn btn-sm btn-warning me-1">
@@ -720,12 +737,13 @@ document.getElementById("userForm").addEventListener("submit", function (e) {
   const name = document.getElementById("userName").value.trim();
   const email = document.getElementById("userEmail").value.trim();
   const password = document.getElementById("userPassword").value;
+  const phone = document.getElementById("userPhone").value.trim();
   const role = document.getElementById("userRole").value;
   const uid = document.getElementById("userId").value;
 
   if (uid) {
     // ✅ Mode Edit
-    firebase.database().ref("users/" + uid).update({ name, email, role })
+    firebase.database().ref("users/" + uid).update({ name, email, phone, role })
       .then(() => {
         alert("Pengguna berhasil diperbarui.");
         bootstrap.Modal.getInstance(document.getElementById("userModal")).hide();
@@ -741,7 +759,7 @@ document.getElementById("userForm").addEventListener("submit", function (e) {
     firebase.auth().createUserWithEmailAndPassword(email, password)
       .then((cred) => {
         const newUid = cred.user.uid;
-        return firebase.database().ref("users/" + newUid).set({ name, email, role });
+        return firebase.database().ref("users/" + newUid).set({ name, email, phone, role });
       })
       .then(() => {
         alert("Pengguna berhasil ditambahkan.");
@@ -769,6 +787,7 @@ function loadUsers() {
       tr.innerHTML = `
         <td>${data.name}</td>
         <td>${data.email}</td>
+        <td>${data.phone}</td>
         <td class="text-capitalize">${data.role || 'user'}</td>
         <td class="text-center">
           <a href="edit_user.html?id=${uid}" class="btn btn-sm btn-warning me-1">
@@ -799,6 +818,7 @@ firebase.database().ref("users").once("value").then(snapshot => {
       row.innerHTML = `
         <td>${user.name}</td>
         <td>${user.email}</td>
+        <td>${user.phone}</td>
         <td><span class="badge bg-secondary">${user.role}</span></td>
         <td>
           <button class="btn btn-success btn-sm me-2" onclick="approveUser('${uid}')">Setujui</button>
@@ -950,6 +970,53 @@ document.getElementById("ow-condition").textContent = condition;
 
 fetchWeather();
 setInterval(fetchWeather, 10 * 60 * 1000);
+
+// NOTIFIKASI DAN NOTIF BADGE
+document.addEventListener("DOMContentLoaded", function () {
+  const badge = document.getElementById("notifBadge");
+  const notifikasiBtn = document.getElementById("notifikasi");
+
+  firebase.auth().onAuthStateChanged(user => {
+    if (!user) return;
+
+    // 🔄 Dengarkan perubahan real-time di /notifications
+    firebase.database().ref("notifications").on("value", snapshot => {
+      let hasUnread = false;
+
+      snapshot.forEach(child => {
+        const data = child.val();
+        if (data.status === "unread") {
+          hasUnread = true;
+        }
+      });
+
+      // ✅ Tampilkan atau sembunyikan badge
+      badge.classList.toggle("d-none", !hasUnread);
+    });
+
+    // ✅ Ketika tombol notifikasi diklik
+    notifikasiBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+
+      // 1. Sembunyikan badge
+      badge.classList.add("d-none");
+
+      // 2. Tandai semua notifikasi sebagai "read"
+      firebase.database().ref("notifications").once("value", snapshot => {
+        const updates = {};
+        snapshot.forEach(child => {
+          updates[child.key + "/status"] = "read";
+        });
+
+        firebase.database().ref("notifications").update(updates)
+          .then(() => {
+            // 3. Redirect ke halaman notifikasi
+            window.location.href = "notifikasi.html";
+          });
+      });
+    });
+  });
+});
 
 </script>
 
