@@ -87,7 +87,7 @@
 
     function loadNotifications() {
       const listEl = document.getElementById("notificationList");
-      db.ref("notifications").orderByChild("timestamp").limitToLast(50).on("value", (snapshot) => {
+      db.ref("notif_admin").orderByChild("timestamp").limitToLast(50).on("value", (snapshot) => {
         listEl.innerHTML = "";
         const items = [];
 
@@ -118,7 +118,7 @@
 
     function deleteNotification(key) {
       if (confirm("Yakin ingin menghapus notifikasi ini?")) {
-        db.ref("notifications/" + key).remove();
+        db.ref("notif_admin/" + key).remove();
       }
     }
 

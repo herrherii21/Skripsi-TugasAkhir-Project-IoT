@@ -34,6 +34,13 @@
      
     <div class="d-flex gap-2">
       <span class="text-white small">Monitoring & Automation Dashboard</span>
+
+      <a id="notifikasi" href="notifikasi_user.html" class="btn btn-light btn-sm fw-semibold position-relative">
+          Notifikasi
+        <span id="notifBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none">
+          ●
+        </span>
+
       <a id="profileLink" href="profil.html" class="btn btn-light btn-sm fw-semibold">Profil</a>
       <a id="authButton" href="index.html" class="btn btn-light btn-sm fw-semibold">Login</a>
     </div>
@@ -624,12 +631,15 @@ const toggleBtn = document.getElementById('toggleSidebar');
   }
 });
 
-// <!-- INTEGRASI API PUBLIK OPEN WEATHER API -->
-const apiKey = "93d084827692523d07fda24c89f9faee";
+// I.S. Sistem memuat data cuaca dari OpenWeatherMap API
+// F.S. Menyimpan data cuaca ke Firebase, menampilkan ke UI, dan mengirim notifikasi jika cuaca ekstrem terdeteksi
 
+// Deklarasi API Key dan koordinat lokasi
+const apiKey = "93d084827692523d07fda24c89f9faee";
 const lat = -6.876855363443979;
 const lon = 107.61104240858664;
 
+// Fungsi untuk menerjemahkan kondisi cuaca dari bahasa Inggris ke Bahasa Indonesia
 function translateWeather(desc) {
   const map = {
     "clear sky": "Langit Cerah",
@@ -657,29 +667,41 @@ function translateWeather(desc) {
   return map[desc] || desc.charAt(0).toUpperCase() + desc.slice(1);
 }
 
+// Fungsi utama untuk mengambil data cuaca dan melakukan proses lanjutan
 async function fetchWeather() {
   try {
+    // Ambil data cuaca dari OpenWeather API
     const response = await fetch(
       `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`
     );
     const data = await response.json();
 
+    // Ambil nilai cuaca
     const temp = data.main.temp;
     const humidity = data.main.humidity;
     const rain = data.rain ? data.rain["1h"] || 0 : 0;
     const rawCondition = data.weather[0].description;
+
+    // VARIABLE UNTUK UJICOBA OTOMATIS
     const condition = translateWeather(rawCondition);
 
+    // VARIABLE UNTUK UJICOBA MANUAL
+    // let condition = translateWeather(rawCondition);
+    // condition = "Hujan Ekstrem";
+
+    // Tampilkan ke UI
     document.getElementById("ow-temperature").textContent = temp.toFixed(1) + "°C";
-document.getElementById("ow-humidity").textContent = humidity + "%";
-document.getElementById("ow-rain").textContent = rain + " mm";
-document.getElementById("ow-condition").textContent = condition;
+    document.getElementById("ow-humidity").textContent = humidity + "%";
+    document.getElementById("ow-rain").textContent = rain + " mm";
+    document.getElementById("ow-condition").textContent = condition;
 
+    // Simpan data cuaca ke Firebase Realtime Database
+    const now = new Date();
+    const isoNow = now.toISOString();
+    const todayStr = isoNow.slice(0, 10); // Format: YYYY-MM-DD
 
-    // SIMPAN KE FIREBASE (Diletakkan di dalam fetchWeather)
-    const now = new Date().toISOString();
     const weatherData = {
-      last_update: now,
+      last_update: isoNow,
       temperature: temp,
       humidity: humidity,
       rain: rain,
@@ -694,15 +716,135 @@ document.getElementById("ow-condition").textContent = condition;
         console.error("❌ Gagal menyimpan data cuaca:", err);
       });
 
+    // Daftar kondisi yang termasuk kategori cuaca ekstrem
+    const kondisiEkstrem = [
+      "Hujan Lebat",
+      "Hujan Sangat Lebat",
+      "Hujan Ekstrem",
+      "Badai Petir",
+      "Angin Tornado",
+      "Kabut Tebal"
+    ];
+
+    // Jika kondisi sekarang termasuk ekstrem → cek apakah sudah dikirim hari ini
+    if (kondisiEkstrem.includes(condition)) {
+      firebase.database().ref("weather_status/last_extreme_notif").once("value")
+        .then(snapshot => {
+          const last = snapshot.val();
+          const lastCondition = last?.condition || "";
+          const lastDate = last?.date || "";
+
+          // Jika kondisi & tanggal sama → tidak kirim ulang
+          if (lastCondition === condition && lastDate === todayStr) {
+            console.log("⏳ Notifikasi cuaca ekstrem sudah dikirim hari ini, tidak dikirim ulang.");
+            return;
+          }
+
+          // Jika belum → siapkan notifikasi baru
+          const notif = {
+            title: "⚠️ Peringatan Cuaca Ekstrem",
+            message: `Terdeteksi kondisi cuaca ekstrem di Bandung: ${condition}. Harap waspada dan lindungi tanaman Anda.`,
+            timestamp: Date.now(),
+            status: "unread"
+          };
+
+          // 1. Simpan ke Firebase path notif_user/
+          firebase.database().ref("notif_user").push(notif)
+            .then(() => {
+              console.log("✅ Notifikasi cuaca ekstrem disimpan ke Firebase");
+            })
+            .catch(err => {
+              console.error("❌ Gagal simpan notifikasi:", err);
+            });
+
+          // 2. Kirim WhatsApp via API Twilio
+          fetch("https://my-twilio-project.vercel.app/api/send-notif", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              to: "+6285161191907", // Ganti dengan nomor user yang join sandbox
+              message: `⚠️ [Smart Farming]\nPeringatan Cuaca Ekstrem: ${condition}.\nSegera lindungi tanaman Anda!`
+            })
+          })
+            .then(res => res.json())
+            .then(data => {
+              if (data.success) {
+                console.log("✅ WhatsApp berhasil dikirim:", data.sid);
+              } else {
+                console.error("❌ Gagal kirim WhatsApp:", data.error);
+              }
+            });
+
+          // 3. Update status terakhir notifikasi ekstrem
+          firebase.database().ref("weather_status/last_extreme_notif").set({
+            condition: condition,
+            date: todayStr
+          });
+        })
+        .catch(err => {
+          console.error("❌ Gagal mengambil status notifikasi sebelumnya:", err);
+        });
+    }
+
   } catch (error) {
-    console.error("Gagal memuat data cuaca:", error);
+    console.error("❌ Gagal memuat data cuaca:", error);
   }
 }
 
+// Panggil saat pertama kali
 fetchWeather();
+
+// Set interval untuk refresh setiap 10 menit
 setInterval(fetchWeather, 10 * 60 * 1000);
 
-  </script>
+// NOTIFIKASI DAN NOTIF BADGE
+document.addEventListener("DOMContentLoaded", function () {
+  const badge = document.getElementById("notifBadge");
+  const notifikasiBtn = document.getElementById("notifikasi");
+
+  firebase.auth().onAuthStateChanged(user => {
+    if (!user) return;
+
+    // 🔄 Dengarkan perubahan real-time di /notifications
+    firebase.database().ref("notif_user").on("value", snapshot => {
+      let hasUnread = false;
+
+      snapshot.forEach(child => {
+        const data = child.val();
+        if (data.status === "unread") {
+          hasUnread = true;
+        }
+      });
+
+      // ✅ Tampilkan atau sembunyikan badge
+      badge.classList.toggle("d-none", !hasUnread);
+    });
+
+    // ✅ Ketika tombol notifikasi diklik
+    notifikasiBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+
+      // 1. Sembunyikan badge
+      badge.classList.add("d-none");
+
+      // 2. Tandai semua notifikasi sebagai "read"
+      firebase.database().ref("notif_user").once("value", snapshot => {
+        const updates = {};
+        snapshot.forEach(child => {
+          updates[child.key + "/status"] = "read";
+        });
+
+        firebase.database().ref("notif_user").update(updates)
+          .then(() => {
+            // 3. Redirect ke halaman notifikasi
+            window.location.href = "notifikasi_user.html";
+          });
+      });
+    });
+  });
+});
+
+</script>
 
 </body>
 </html>

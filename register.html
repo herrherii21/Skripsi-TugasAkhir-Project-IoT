@@ -106,7 +106,7 @@
           role: "pending"
         }).then(() => {
           // Tambah ke notifikasi Firebase
-         firebase.database().ref("notifications").push({
+         firebase.database().ref("notif_admin").push({
   title: "📥 Pengguna Baru Mendaftar",
   message:
     "👤 Nama: " + name + "\n" +
